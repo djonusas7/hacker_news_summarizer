@@ -61,22 +61,32 @@ final_list = []
 [print(f"{index + 1}. {article['title']} - {article['url']}") for index, article in enumerate(top_5_articles)]
 
 print("\nFind/Create your OpenAI API key at: https://platform.openai.com/account/api-keys.\n")
-key = input("Enter OpenAI API key and press Enter to continue to the LLM setup...\n")
+'''
+ask user if they want to input their API key or if they want to use a saved key from credentials.yml file. If they choose to use the saved key, load it from the file and set it as an environment variable. If they choose to input a new key, ask them to input it and save it to the credentials.yml file for future use.
+'''
+
+use_saved_key = input("Do you want to use a saved API key from credentials.yml file? (yes/no): ").lower()
+if use_saved_key == "yes" or use_saved_key == "y":
+    key = yaml.safe_load(open('credentials.yml'))['openai']
+else:
+    key = input("Enter OpenAI API key and press Enter to continue to the LLM setup...\n")
 # if key is not provided, ask the user to input it again until a valid key is provided
 while not key:
     print("API key is required to continue.\n")
     key = input("Enter OpenAI API key and press Enter to continue to the LLM setup...\n")
 
-# test the provided key by making a simple quick API call to OpenAI. If the call fails, ask the user to enter the key again.
-test_model = ChatOpenAI(model="gpt-5.4-mini", api_key=key)
-try:
-    test_model.invoke({"article_content": "Test"})
-except Exception as error:
-    print("The provided API key is invalid or there was an error connecting to OpenAI. Please check your key and try again.\n")
-    key = input("Enter OpenAI API key and press Enter to continue to the LLM setup...\n")
-    while not key:
-        print("API key is required to continue.\n")
-        key = input("Enter OpenAI API key and press Enter to continue to the LLM setup...\n")   
+# test the provided key by making a simple quick API call to OpenAI.
+while True:
+    try:
+        test_model = ChatOpenAI(model="gpt-5.4-mini", api_key=key)
+        test_model.invoke("Reply with only the word OK.")
+        break
+    except Exception as error:
+        print("The provided API key is invalid or there was an error connecting to OpenAI. Please check your key and try again.\n")
+        key = input("Enter OpenAI API key and press Enter to continue to the LLM setup...\n")
+        while not key:
+            print("API key is required to continue.\n")
+            key = input("Enter OpenAI API key and press Enter to continue to the LLM setup...\n")
 
 print("\nThank you! Setting up the environment and saving credentials for future use...")
 
@@ -148,4 +158,3 @@ for i in final_list:
     print(result.text)
     print("#################################################")
     print("\n\n")
-
